@@ -94,25 +94,30 @@ const getInnerHTMLDescriptor = (el) => {
 
   if (!innerDescriptor.set) {
     innerDescriptor.set = function(v) {
-      const dummy = document.createElement('div');
+      // remove all current content from inside
+      el.innerText = '';
 
+      // make a dummy node to use innerHTML on
+      const dummy = document.createElement(el.nodeName.toLowerCase());
+
+      // set innerHTML to the value provided
       dummy.innerHTML = v;
 
-      // remove all elements from dummy and add
-      // to our el
-      while (dummy.children.length) {
-        const child = dummy.removeChild(dummy.children[0]);
+      // make a document fragment to hold the nodes from dummy
+      const docFrag = document.createDocumentFragment();
 
-        window.Element.prototype.appendChild.call(el, child);
+      // copy all of the nodes created by the innerHTML on dummy
+      // to the document fragment
+      while (dummy.childNodes.length) {
+        docFrag.appendChild(dummy.childNodes[0]);
       }
 
-      // if any text is left it is not an element and
-      // we must add that as innerText
-      if (dummy.innerText) {
-        el.innerText = dummy.innerText;
-      }
+      // now we add all of that html in one by appending the
+      // document fragment. This is how innerHTML does it.
+      window.Element.prototype.appendChild.call(el, docFrag);
 
-      return v;
+      // then return the result that innerHTML's setter would
+      return el.innerHTML;
     };
   }
 
